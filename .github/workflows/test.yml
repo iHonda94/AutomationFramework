@@ -29,6 +29,13 @@ on:
   # Allow manual trigger from GitHub website (Actions tab → Run workflow button)
   workflow_dispatch:
 
+# Required permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  checks: write
+
 # ============================================================================
 # WHAT ARE THE STEPS?
 # ============================================================================
@@ -61,12 +68,29 @@ jobs:
         run: mvn test -Dheadless=true -Dtest=Tests.web.* --fail-at-end
         continue-on-error: true  # Continue to generate report even if tests fail
       
-      # Step 5: Generate Allure report
+      # Step 5: Generate Test Summary (shows DIRECTLY in GitHub Actions!)
+      - name: Test Summary
+        if: always()
+        uses: test-summary/action@v2
+        with:
+          paths: target/surefire-reports/*.xml
+      
+      # Step 6: Publish Test Results (shows pass/fail details in GitHub)
+      - name: Publish Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: false
+      
+      # Step 7: Generate Allure report
       - name: Generate Allure Report
-        if: always()  # Run even if tests failed
+        if: always()
         run: mvn allure:report
       
-      # Step 6: Upload test results (you can download these from GitHub)
+      # Step 8: Upload Allure Results (for history)
       - name: Upload Allure Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -75,7 +99,7 @@ jobs:
           path: target/allure-results
           retention-days: 30
       
-      # Step 7: Upload the HTML report (viewable in browser)
+      # Step 9: Upload the HTML report
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,13 +107,45 @@ jobs:
           name: allure-report
           path: target/site/allure-maven-plugin
           retention-days: 30
+      
+      # Step 10: Deploy Allure Report to GitHub Pages (viewable online!)
+      - name: Setup Pages
+        if: always() && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v4
+      
+      - name: Upload to GitHub Pages
+        if: always() && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/site/allure-maven-plugin
+      
+      - name: Deploy to GitHub Pages
+        if: always() && github.ref == 'refs/heads/main'
+        id: deployment
+        uses: actions/deploy-pages@v4
 
 # ============================================================================
 # HOW TO SEE RESULTS?
 # ============================================================================
+# 
+# OPTION 1: Quick Summary (in GitHub Actions)
+# -------------------------------------------
 # 1. Go to your GitHub repository
-# 2. Click "Actions" tab at the top
-# 3. Click on the latest workflow run
-# 4. Scroll down to "Artifacts" section
-# 5. Download "allure-report" → Extract → Open index.html in browser
+# 2. Click "Actions" tab
+# 3. Click on the workflow run
+# 4. Scroll down - you'll see a TEST SUMMARY with pass/fail counts!
+# 5. Click "Test Results" on the left sidebar for detailed view
+#
+# OPTION 2: Full Allure Report (online - GitHub Pages)
+# ----------------------------------------------------
+# After enabling GitHub Pages (one-time setup):
+# 1. Go to: https://honda1994.github.io/AutomationFramework/
+# 2. The full interactive Allure report is there!
+#
+# FIRST TIME SETUP FOR GITHUB PAGES:
+# ----------------------------------
+# 1. Go to your repo → Settings → Pages
+# 2. Under "Build and deployment", set Source to "GitHub Actions"
+# 3. Save - that's it! The next run will deploy the report.
+#
 # ============================================================================
