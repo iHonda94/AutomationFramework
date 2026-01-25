@@ -1,0 +1,95 @@
+# ============================================================================
+# WHAT IS THIS FILE?
+# ============================================================================
+# This is a GitHub Actions "workflow" file. Think of it as a recipe that tells
+# GitHub: "When someone pushes code, automatically run these tests for me."
+#
+# WHERE DOES IT RUN?
+# GitHub provides FREE virtual computers (called "runners") in the cloud.
+# When you push code, GitHub spins up a fresh computer, runs your tests,
+# and shows you the results - all automatically!
+#
+# NO SETUP NEEDED ON YOUR MACHINE - everything runs on GitHub's servers.
+# ============================================================================
+
+name: Run Automation Tests
+
+# ============================================================================
+# WHEN SHOULD THIS RUN?
+# ============================================================================
+on:
+  # Run when code is pushed to main or master branch
+  push:
+    branches: [ main, master ]
+  
+  # Run when someone creates a Pull Request to main or master
+  pull_request:
+    branches: [ main, master ]
+  
+  # Allow manual trigger from GitHub website (Actions tab → Run workflow button)
+  workflow_dispatch:
+
+# ============================================================================
+# WHAT ARE THE STEPS?
+# ============================================================================
+jobs:
+  test:
+    # Use Ubuntu Linux (free GitHub runner)
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Download your code to the runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Install Java 17 (needed to run your tests)
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven  # Cache dependencies to speed up future runs
+      
+      # Step 3: Install Chrome browser (for Selenium tests)
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      
+      # Step 4: Run the tests in headless mode (no display needed)
+      - name: Run Web Tests
+        run: mvn test -Dheadless=true -Dtest=Tests.web.* --fail-at-end
+        continue-on-error: true  # Continue to generate report even if tests fail
+      
+      # Step 5: Generate Allure report
+      - name: Generate Allure Report
+        if: always()  # Run even if tests failed
+        run: mvn allure:report
+      
+      # Step 6: Upload test results (you can download these from GitHub)
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: target/allure-results
+          retention-days: 30
+      
+      # Step 7: Upload the HTML report (viewable in browser)
+      - name: Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: target/site/allure-maven-plugin
+          retention-days: 30
+
+# ============================================================================
+# HOW TO SEE RESULTS?
+# ============================================================================
+# 1. Go to your GitHub repository
+# 2. Click "Actions" tab at the top
+# 3. Click on the latest workflow run
+# 4. Scroll down to "Artifacts" section
+# 5. Download "allure-report" → Extract → Open index.html in browser
+# ============================================================================

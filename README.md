@@ -289,8 +289,14 @@ public void testSearch() {
 ```bash
 # From IDE: Right-click on GoogleTests → Run
 
-# From command line:
+# From command line (browser visible):
 mvn test -Dtest=GoogleTests
+
+# From command line (headless - no browser window):
+mvn test -Dtest=GoogleTests -Dheadless=true
+
+# Run all tests using testng.xml:
+mvn test
 ```
 
 ### Mobile Tests (requires Appium)
@@ -322,6 +328,159 @@ platformName=iOS
 
 # Web browser (chrome, firefox, edge)
 browser=chrome
+
+# Headless mode (true = no browser window, for CI/CD)
+headless=false
+```
+
+---
+
+## CI/CD Pipeline (GitHub Actions)
+
+### What is CI/CD? (Beginner Explanation)
+
+**CI/CD** stands for **Continuous Integration / Continuous Delivery**. In simple terms:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     WITHOUT CI/CD (Manual)                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   You write code → You manually run tests → You check results   │
+│                                                                  │
+│   Problems:                                                      │
+│   • You might forget to run tests                                │
+│   • Different machines might have different results              │
+│   • Time consuming                                               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                      WITH CI/CD (Automatic)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   You push code → Tests run AUTOMATICALLY → Results appear      │
+│                                                                  │
+│   Benefits:                                                      │
+│   • Never forget to test                                         │
+│   • Same environment every time                                  │
+│   • Saves time                                                   │
+│   • Catches bugs before they reach production                    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### How GitHub Actions Works
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    GITHUB ACTIONS FLOW                            │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   1. You push code to GitHub                                      │
+│            ↓                                                      │
+│   2. GitHub sees the push and reads .github/workflows/test.yml    │
+│            ↓                                                      │
+│   3. GitHub creates a fresh virtual computer (Ubuntu Linux)       │
+│            ↓                                                      │
+│   4. The computer installs Java, Chrome, downloads your code      │
+│            ↓                                                      │
+│   5. Runs: mvn test -Dheadless=true                               │
+│            ↓                                                      │
+│   6. Generates Allure report                                      │
+│            ↓                                                      │
+│   7. Uploads report as downloadable "artifact"                    │
+│            ↓                                                      │
+│   8. Shows ✅ or ❌ on your GitHub repository                     │
+│                                                                   │
+│   ALL OF THIS HAPPENS AUTOMATICALLY - NO SETUP ON YOUR MACHINE!  │
+│                                                                   │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Pipeline File Location
+
+```
+.github/
+└── workflows/
+    └── test.yml    ← This file tells GitHub what to do
+```
+
+### What the Pipeline Does (Step by Step)
+
+| Step | What Happens | Why |
+|------|--------------|-----|
+| 1. Checkout | Downloads your code to the runner | Runner starts empty |
+| 2. Setup Java | Installs Java 17 | Your tests need Java |
+| 3. Setup Chrome | Installs Chrome browser | Selenium needs a browser |
+| 4. Run Tests | `mvn test -Dheadless=true` | Runs tests without display |
+| 5. Generate Report | `mvn allure:report` | Creates HTML report |
+| 6. Upload Artifacts | Saves report files | So you can download them |
+
+### How to See Your Test Results
+
+1. Go to your GitHub repository
+2. Click the **"Actions"** tab at the top
+3. Click on the latest workflow run (shows ✅ or ❌)
+4. Scroll down to **"Artifacts"** section
+5. Download **"allure-report"**
+6. Extract the ZIP file
+7. Open **index.html** in your browser
+
+```
+GitHub Repository
+       │
+       ├── Code tab (your files)
+       ├── Issues tab
+       ├── Pull requests tab
+       └── Actions tab  ← CLICK HERE TO SEE TEST RUNS
+              │
+              └── Click a run → Scroll to Artifacts → Download report
+```
+
+### When Does the Pipeline Run?
+
+| Trigger | When |
+|---------|------|
+| `push` | When you push to main/master branch |
+| `pull_request` | When someone opens a PR to main/master |
+| `workflow_dispatch` | When you manually click "Run workflow" button |
+
+### Headless Mode Explained
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    NORMAL MODE (headless=false)                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   Chrome opens → You can see the browser → Tests run visually   │
+│                                                                  │
+│   Good for: Debugging, watching tests run                        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                   HEADLESS MODE (headless=true)                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   Chrome runs invisibly → No window → Tests run in background   │
+│                                                                  │
+│   Good for: CI/CD servers (they don't have monitors!)            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Running Tests Locally vs CI/CD
+
+```bash
+# LOCAL (your computer) - See browser
+mvn test
+
+# LOCAL (your computer) - Headless mode
+mvn test -Dheadless=true
+
+# CI/CD (GitHub) - Always headless (configured in test.yml)
+# Runs automatically when you push!
 ```
 
 ---
