@@ -63,52 +63,84 @@ jobs:
         with:
           chrome-version: stable
       
-      # Step 4: Run the tests in headless mode (no display needed)
+      # Step 4: Run ONLY web tests in headless mode
+      # Uses testng-web.xml which excludes mobile tests (Appium isn't available in CI)
       - name: Run Web Tests
-        run: mvn test -Dheadless=true -Dtest=Tests.web.* --fail-at-end
+        run: |
+          mvn test -Dheadless=true \
+            -Dsurefire.suiteXmlFiles=testng-web.xml \
+            --fail-at-end
         continue-on-error: true  # Continue to generate report even if tests fail
       
-      # Step 5: Generate Test Summary (shows DIRECTLY in GitHub Actions!)
+      # Step 5: Debug - Show what files were generated
+      - name: List generated files
+        if: always()
+        run: |
+          echo "=== Surefire Reports ==="
+          ls -la target/surefire-reports/ || echo "No surefire-reports folder"
+          echo ""
+          echo "=== Allure Results ==="
+          ls -la target/allure-results/ || echo "No allure-results folder"
+          echo ""
+          echo "=== Full target directory ==="
+          find target -name "*.xml" 2>/dev/null | head -20 || echo "No XML files found"
+      
+      # Step 6: Generate Test Summary (shows DIRECTLY in GitHub Actions!)
       - name: Test Summary
         if: always()
         uses: test-summary/action@v2
         with:
-          paths: target/surefire-reports/*.xml
+          paths: |
+            target/surefire-reports/TEST-*.xml
+            target/surefire-reports/junitreports/*.xml
+        continue-on-error: true
       
-      # Step 6: Publish Test Results (shows pass/fail details in GitHub)
+      # Step 7: Publish Test Results (shows pass/fail details in GitHub)
       - name: Publish Test Results
         if: always()
         uses: dorny/test-reporter@v1
         with:
           name: Test Results
-          path: target/surefire-reports/*.xml
+          path: 'target/surefire-reports/TEST-*.xml'
           reporter: java-junit
           fail-on-error: false
+        continue-on-error: true
       
-      # Step 7: Generate Allure report
+      # Step 8: Generate Allure report
       - name: Generate Allure Report
         if: always()
-        run: mvn allure:report
+        run: mvn allure:report -q || echo "Allure report generation completed"
       
-      # Step 8: Upload Allure Results (for history)
+      # Step 9: Create a simple HTML report if Allure fails
+      - name: Ensure report exists
+        if: always()
+        run: |
+          mkdir -p target/site/allure-maven-plugin
+          if [ ! -f target/site/allure-maven-plugin/index.html ]; then
+            echo "<html><body><h1>Test Report</h1><p>Allure report was not generated. Check the test logs.</p></body></html>" > target/site/allure-maven-plugin/index.html
+          fi
+      
+      # Step 10: Upload Allure Results (for history)
       - name: Upload Allure Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          path: target/allure-results
+          path: target/allure-results/
+          if-no-files-found: ignore
           retention-days: 30
       
-      # Step 9: Upload the HTML report
+      # Step 11: Upload the HTML report
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: target/site/allure-maven-plugin
+          path: target/site/allure-maven-plugin/
+          if-no-files-found: ignore
           retention-days: 30
       
-      # Step 10: Deploy Allure Report to GitHub Pages (viewable online!)
+      # Step 12: Deploy Allure Report to GitHub Pages (viewable online!)
       - name: Setup Pages
         if: always() && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v4
@@ -117,7 +149,7 @@ jobs:
         if: always() && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: target/site/allure-maven-plugin
+          path: target/site/allure-maven-plugin/
       
       - name: Deploy to GitHub Pages
         if: always() && github.ref == 'refs/heads/main'
