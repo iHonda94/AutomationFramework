@@ -1,146 +1,59 @@
 # ============================================================================
-# WHAT IS THIS FILE?
-# ============================================================================
-# This is a GitHub Actions "workflow" file. Think of it as a recipe that tells
-# GitHub: "When someone pushes code, automatically run these tests for me."
-#
-# WHERE DOES IT RUN?
-# GitHub provides FREE virtual computers (called "runners") in the cloud.
-# When you push code, GitHub spins up a fresh computer, runs your tests,
-# and shows you the results - all automatically!
-#
-# NO SETUP NEEDED ON YOUR MACHINE - everything runs on GitHub's servers.
+# GitHub Actions Workflow - Runs tests automatically when you push code
 # ============================================================================
 
 name: Run Automation Tests
 
-# ============================================================================
-# WHEN SHOULD THIS RUN?
-# ============================================================================
 on:
-  # Run when code is pushed to main or master branch
   push:
     branches: [ main, master ]
-  
-  # Run when someone creates a Pull Request to main or master
   pull_request:
     branches: [ main, master ]
-  
-  # Allow manual trigger from GitHub website (Actions tab → Run workflow button)
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger
 
-# Required permissions for GitHub Pages deployment
 permissions:
   contents: read
   pages: write
   id-token: write
-  checks: write
 
-# ============================================================================
-# WHAT ARE THE STEPS?
-# ============================================================================
 jobs:
   test:
-    # Use Ubuntu Linux (free GitHub runner)
     runs-on: ubuntu-latest
     
     steps:
-      # Step 1: Download your code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
       
-      # Step 2: Install Java 17 (needed to run your tests)
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: maven  # Cache dependencies to speed up future runs
+          cache: maven
       
-      # Step 3: Install Chrome browser (for Selenium tests)
       - name: Set up Chrome
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
       
-      # Step 4: Run ONLY web tests in headless mode
-      # Uses testng-web.xml which excludes mobile tests (Appium isn't available in CI)
       - name: Run Web Tests
-        run: |
-          mvn test -Dheadless=true \
-            -Dsurefire.suiteXmlFiles=testng-web.xml \
-            --fail-at-end
-        continue-on-error: true  # Continue to generate report even if tests fail
-      
-      # Step 5: Debug - Show what files were generated
-      - name: List generated files
-        if: always()
-        run: |
-          echo "=== Surefire Reports ==="
-          ls -la target/surefire-reports/ || echo "No surefire-reports folder"
-          echo ""
-          echo "=== Allure Results ==="
-          ls -la target/allure-results/ || echo "No allure-results folder"
-          echo ""
-          echo "=== Full target directory ==="
-          find target -name "*.xml" 2>/dev/null | head -20 || echo "No XML files found"
-      
-      # Step 6: Generate Test Summary (shows DIRECTLY in GitHub Actions!)
-      - name: Test Summary
-        if: always()
-        uses: test-summary/action@v2
-        with:
-          paths: |
-            target/surefire-reports/TEST-*.xml
-            target/surefire-reports/junitreports/*.xml
+        run: mvn test -Dheadless=true -Dsurefire.suiteXmlFiles=testng-web.xml
         continue-on-error: true
       
-      # Step 7: Publish Test Results (shows pass/fail details in GitHub)
-      - name: Publish Test Results
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Test Results
-          path: 'target/surefire-reports/TEST-*.xml'
-          reporter: java-junit
-          fail-on-error: false
-        continue-on-error: true
-      
-      # Step 8: Generate Allure report
       - name: Generate Allure Report
         if: always()
-        run: mvn allure:report -q || echo "Allure report generation completed"
+        run: mvn allure:report -q
       
-      # Step 9: Create a simple HTML report if Allure fails
-      - name: Ensure report exists
-        if: always()
-        run: |
-          mkdir -p target/site/allure-maven-plugin
-          if [ ! -f target/site/allure-maven-plugin/index.html ]; then
-            echo "<html><body><h1>Test Report</h1><p>Allure report was not generated. Check the test logs.</p></body></html>" > target/site/allure-maven-plugin/index.html
-          fi
-      
-      # Step 10: Upload Allure Results (for history)
-      - name: Upload Allure Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: target/allure-results/
-          if-no-files-found: ignore
-          retention-days: 30
-      
-      # Step 11: Upload the HTML report
+      # Only upload the viewable Allure report (removed allure-results artifact)
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: target/site/allure-maven-plugin/
-          if-no-files-found: ignore
           retention-days: 30
       
-      # Step 12: Deploy Allure Report to GitHub Pages (viewable online!)
+      # Deploy to GitHub Pages so you can view report online
       - name: Setup Pages
         if: always() && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v4
@@ -153,31 +66,8 @@ jobs:
       
       - name: Deploy to GitHub Pages
         if: always() && github.ref == 'refs/heads/main'
-        id: deployment
         uses: actions/deploy-pages@v4
 
 # ============================================================================
-# HOW TO SEE RESULTS?
-# ============================================================================
-# 
-# OPTION 1: Quick Summary (in GitHub Actions)
-# -------------------------------------------
-# 1. Go to your GitHub repository
-# 2. Click "Actions" tab
-# 3. Click on the workflow run
-# 4. Scroll down - you'll see a TEST SUMMARY with pass/fail counts!
-# 5. Click "Test Results" on the left sidebar for detailed view
-#
-# OPTION 2: Full Allure Report (online - GitHub Pages)
-# ----------------------------------------------------
-# After enabling GitHub Pages (one-time setup):
-# 1. Go to: https://honda1994.github.io/AutomationFramework/
-# 2. The full interactive Allure report is there!
-#
-# FIRST TIME SETUP FOR GITHUB PAGES:
-# ----------------------------------
-# 1. Go to your repo → Settings → Pages
-# 2. Under "Build and deployment", set Source to "GitHub Actions"
-# 3. Save - that's it! The next run will deploy the report.
-#
+# View your report at: https://honda1994.github.io/AutomationFramework/
 # ============================================================================
