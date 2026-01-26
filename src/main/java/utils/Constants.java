@@ -68,4 +68,32 @@ public final class Constants {
     
     public static final String PLATFORM_ANDROID = "Android";
     public static final String PLATFORM_IOS = "iOS";
+
+    // ==================== API CONFIGURATION ====================
+    
+    public static final String API_BASE_URL = "https://api.nprd.ccbcc.com/ccponboarding-qa";
+    public static final String API_SUBSCRIPTION_KEY = "your-subscription-key";
+    
+    // Note: Token expires frequently - update before running tests
+    // Get token from your authentication provider and paste here
+    public static final String API_BEARER_TOKEN = "your-bearer-token";
+
+    // ==================== API TEST DATA ====================
+    
+    public static final String PROSPECT_ID = "971124";
+    public static final String EXPECTED_ACCOUNT_NAME = "3 STAR BEER & WINE";
+    public static final String EXPECTED_CITY = "North Chicago ";
+    public static final String EXPECTED_STATE = "IL";
+    public static final int EXPECTED_PROSPECT_ID = 971124;
+
+    // ==================== DATABASE CONFIGURATION ====================
+    
+    public static final String DB_SERVER = "sqlsvr-ccbcc-qa-01.database.windows.net";
+    public static final String DB_NAME = "sqldb-qa-ccp";
+    public static final String DB_USER = "neaq5h@ccbcc.com";
+    
+    // ==================== DATABASE TEST DATA ====================
+    
+    public static final String DB_QUERY_PLANS = "SELECT TOP 10 * FROM [MobileData].[t_Plan] WHERE CreatedBy = ?";
+    public static final String DB_CREATED_BY = "neaq5h";
 }
