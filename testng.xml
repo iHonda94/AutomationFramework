@@ -8,6 +8,14 @@
         </classes>
     </test>
     
+    <test name="API Tests">
+        <classes>
+            <class name="Tests.api.ApiExampleTests"/>
+            <!-- Uncomment when database is configured -->
+            <!-- <class name="Tests.api.DatabaseExampleTests"/> -->
+        </classes>
+    </test>
+    
     <test name="Mobile Tests">
         <classes>
             <class name="Tests.mobile.LoginPageTests"/>
