@@ -1,319 +1,115 @@
-# Mobile & Web Automation Framework
+# Automation Framework
 
-A simple, clean test automation framework for Mobile (Android/iOS) and Web applications.
+A professional test automation framework for **Web** and **Mobile** applications with built-in CI/CD integration.
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Web Testing** | Selenium WebDriver with Chrome, Firefox, Edge support |
+| **Mobile Testing** | Appium for Android and iOS applications |
+| **Page Object Model** | Clean separation of test logic and page elements |
+| **Allure Reporting** | Beautiful, interactive HTML test reports |
+| **CI/CD Ready** | GitHub Actions pipeline with automatic test execution |
+| **Headless Mode** | Run tests without browser UI (for servers) |
+| **Auto Driver Management** | WebDriverManager handles browser drivers automatically |
+| **Screenshot on Failure** | Automatic screenshots when tests fail |
 
 ---
 
 ## Project Structure
 
 ```
-src/
-├── main/java/
-│   ├── base/                       # Base classes
-│   │   ├── mobile/
-│   │   │   └── BaseTest.java       # Mobile driver setup (Appium)
-│   │   └── web/
-│   │       └── BaseTest.java       # Web driver setup (Selenium)
-│   │
-│   ├── pages/                      # Page Object classes
-│   │   ├── mobile/
-│   │   │   ├── HomePage.java       # Mobile home screen
-│   │   │   └── LoginPage.java      # Mobile login screen
-│   │   └── web/
-│   │       └── GooglePage.java     # Google webpage
-│   │
-│   └── utils/                      # Utility classes
-│       ├── Config.java             # Reads application.properties
-│       ├── Constants.java          # All constant values
-│       ├── DriverManager.java      # Centralized driver management
-│       ├── Actions.java            # UI actions (click, type, etc.)
-│       ├── Validations.java        # Assertions and verifications
-│       ├── ReportUtils.java        # Allure reporting utilities
-│       └── TestListener.java       # TestNG listener
+AutomationFramework/
+├── .github/
+│   └── workflows/
+│       └── test.yml              # CI/CD pipeline configuration
 │
-├── main/resources/
-│   ├── application.properties      # Configuration
-│   ├── logback.xml                 # Logging configuration
-│   └── allure.properties           # Allure configuration
+├── src/
+│   ├── main/java/
+│   │   ├── base/                 # Base test classes
+│   │   │   ├── mobile/
+│   │   │   │   └── BaseTest.java     # Mobile driver setup (Appium)
+│   │   │   └── web/
+│   │   │       └── BaseTest.java     # Web driver setup (Selenium)
+│   │   │
+│   │   ├── pages/                # Page Object classes
+│   │   │   ├── mobile/
+│   │   │   │   ├── HomePage.java
+│   │   │   │   └── LoginPage.java
+│   │   │   └── web/
+│   │   │       └── GooglePage.java
+│   │   │
+│   │   └── utils/                # Utility classes
+│   │       ├── Actions.java          # UI actions (click, type, etc.)
+│   │       ├── Config.java           # Configuration reader
+│   │       ├── Constants.java        # Constant values
+│   │       ├── DriverManager.java    # Centralized driver access
+│   │       ├── ReportUtils.java      # Allure reporting utilities
+│   │       ├── TestListener.java     # TestNG event listener
+│   │       └── Validations.java      # Assertions and verifications
+│   │
+│   ├── main/resources/
+│   │   ├── application.properties    # Configuration settings
+│   │   ├── allure.properties         # Allure configuration
+│   │   └── logback.xml               # Logging configuration
+│   │
+│   └── test/java/
+│       └── Tests/                # Test classes
+│           ├── mobile/
+│           │   └── LoginPageTests.java
+│           └── web/
+│               └── GoogleTests.java
 │
-└── test/java/
-    └── Tests/                      # Test classes
-        ├── mobile/
-        │   └── LoginPageTests.java
-        └── web/
-            └── GoogleTests.java
+├── testng.xml                    # Full test suite (web + mobile)
+├── testng-web.xml                # Web-only test suite (for CI/CD)
+├── pom.xml                       # Maven dependencies
+└── open-report.bat               # Opens Allure report locally
 ```
 
 ---
 
-## Class Relationships
+## Quick Start
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FRAMEWORK ARCHITECTURE                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   TEST CLASSES                    PAGE CLASSES                   │
-│   ────────────                    ────────────                   │
-│   GoogleTests ──extends──> BaseTest    GooglePage                │
-│   LoginPageTests ─extends─> BaseTest   LoginPage, HomePage       │
-│                                                                  │
-│                         UTILITY CLASSES                          │
-│                         ───────────────                          │
-│   ┌─────────────┐    ┌─────────────┐    ┌──────────────┐        │
-│   │DriverManager│◄───│   Actions   │    │ Validations  │        │
-│   │ (holds      │◄───│ (click,type)│    │ (assertions) │        │
-│   │  driver)    │    └─────────────┘    └──────────────┘        │
-│   └─────────────┘                                                │
-│         ▲                                                        │
-│         │                                                        │
-│   ┌─────────────┐                                                │
-│   │  BaseTest   │ ← Creates driver, sets in DriverManager        │
-│   └─────────────┘                                                │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+### Prerequisites
 
----
+- Java 17 or higher
+- Maven 3.6+
+- Chrome, Firefox, or Edge browser
+- (For mobile) Appium server and Android SDK / Xcode
 
-## How It Works
+### Run Web Tests
 
-### Test Execution Flow
-
-```
-1. TestNG starts
-       ↓
-2. BaseTest.setUp()
-   → Creates driver (Chrome/Firefox/Appium)
-   → DriverManager.setDriver(driver)
-       ↓
-3. Test class @BeforeMethod
-   → Creates page objects (GooglePage, LoginPage)
-   → PageFactory finds all @FindBy elements
-       ↓
-4. @Test method runs
-   → Page methods call Actions (click, type)
-   → Actions get driver from DriverManager
-       ↓
-5. Test finishes (pass/fail)
-       ↓
-6. BaseTest.tearDown()
-   → If failed: capture screenshot for Allure
-   → driver.quit()
-   → DriverManager.clearDriver()
-```
-
----
-
-## Key Classes Explained
-
-### BaseTest
-**Job:** Create and destroy the browser/app driver
-
-```java
-public class BaseTest {
-    public static WebDriver driver;
-    
-    @BeforeMethod
-    public void setUp() {
-        driver = new ChromeDriver();
-        DriverManager.setDriver(driver);  // Save for everyone
-    }
-    
-    @AfterMethod
-    public void tearDown(ITestResult result) {
-        if (result.getStatus() == ITestResult.FAILURE) {
-            ReportUtils.captureScreenshot(driver, "Failure");
-        }
-        driver.quit();
-        DriverManager.clearDriver();
-    }
-}
-```
-
-### DriverManager
-**Job:** Hold the driver so all classes can access it without passing it around
-
-```java
-DriverManager.setDriver(driver);   // BaseTest calls this
-DriverManager.getDriver();         // Actions/Validations call this
-DriverManager.clearDriver();       // Cleanup after test
-```
-
-### Page Classes (GooglePage, LoginPage, etc.)
-**Job:** Represent a screen/page with its elements and actions
-
-```java
-public class GooglePage {
-    
-    @FindBy(name = "q")
-    private WebElement searchBox;
-    
-    public GooglePage() {
-        PageFactory.initElements(DriverManager.getDriver(), this);
-    }
-    
-    public void searchFor(String text) {
-        Actions.type(searchBox, text);
-        Actions.pressEnter(searchBox);
-    }
-}
-```
-
-### Actions
-**Job:** Common UI actions - no need to pass driver!
-
-```java
-Actions.click(element);
-Actions.type(element, "text");
-Actions.navigateTo("https://google.com");
-Actions.getPageTitle();
-```
-
-### Validations
-**Job:** Assertions and checks - no need to pass driver!
-
-```java
-Validations.validateTrue(condition, "message");
-Validations.validatePageTitleContains("Google");
-Validations.isDisplayed(element);
-```
-
----
-
-## Design Patterns Used
-
-| Pattern | Where | Purpose |
-|---------|-------|---------|
-| **Page Object Model** | Page classes | Separate page structure from test logic |
-| **Factory Pattern** | PageFactory.initElements() | Create and initialize page elements |
-| **Singleton (Partial)** | DriverManager, BaseTest.driver | Single shared driver instance |
-
----
-
-## SOLID Principles Explained
-
-### S - Single Responsibility Principle ✓
-
-**Rule:** Each class should do ONE thing only.
-
-| Class | Its ONE Job |
-|-------|-------------|
-| `Config.java` | Read settings from properties file |
-| `Constants.java` | Store constant values |
-| `DriverManager.java` | Hold the driver |
-| `Actions.java` | Perform UI actions (click, type) |
-| `Validations.java` | Check if things are correct |
-| `BaseTest.java` | Open and close the browser |
-| `GooglePage.java` | Handle Google page only |
-| `GoogleTests.java` | Run Google tests only |
-
-**Example - Why this is good:**
-```
-If you need to change how clicking works:
-→ You only change Actions.java
-→ You don't touch any other file!
-```
-
----
-
-### O - Open/Closed Principle ✓
-
-**Rule:** Add NEW code without CHANGING existing code.
-
-```
-Want to add FacebookPage?
-─────────────────────────
-✓ CREATE: FacebookPage.java (new file)
-✗ DON'T MODIFY: GooglePage.java, Actions.java, BaseTest.java
-
-Want to add FacebookTests?
-──────────────────────────
-✓ CREATE: FacebookTests.java extends BaseTest (new file)
-✗ DON'T MODIFY: GoogleTests.java, BaseTest.java
-```
-
-**The framework is OPEN for adding new pages/tests, but CLOSED for modification.**
-
----
-
-### D - Dependency Inversion Principle ✓ (Partial)
-
-**Rule:** High-level code should not know low-level details.
-
-```
-TEST (high-level)
-      │
-      │  uses
-      ▼
-PAGE OBJECT (abstraction)
-      │
-      │  hides
-      ▼
-WEBELEMENT (low-level detail)
-```
-
-**Bad Example:**
-```java
-// Test knows TOO MUCH about how to find elements
-@Test
-public void testSearch() {
-    WebElement searchBox = driver.findElement(By.name("q"));  // Low-level!
-    searchBox.sendKeys("hello");
-}
-```
-
-**Good Example (Your Framework):**
-```java
-// Test only knows about page methods
-@Test
-public void testSearch() {
-    googlePage.searchFor("hello");  // Clean! No WebElement details
-}
-```
-
----
-
-### Principles NOT Implemented
-
-| Principle | Why Not |
-|-----------|---------|
-| **L - Liskov Substitution** | Not applicable - we don't substitute classes |
-| **I - Interface Segregation** | Framework doesn't use interfaces (kept simple) |
-
----
-
-## How to Run
-
-### Web Tests
 ```bash
-# From IDE: Right-click on GoogleTests → Run
-
-# From command line (browser visible):
-mvn test -Dtest=GoogleTests
-
-# From command line (headless - no browser window):
-mvn test -Dtest=GoogleTests -Dheadless=true
-
-# Run all tests using testng.xml:
+# Run with browser visible
 mvn test
+
+# Run in headless mode (no browser window)
+mvn test -Dheadless=true
+
+# Run specific test class
+mvn test -Dtest=GoogleTests
 ```
 
-### Mobile Tests (requires Appium)
+### Run Mobile Tests
+
 ```bash
 # Start Appium server first
 appium
 
-# Run tests
+# Run mobile tests
 mvn test -Dtest=LoginPageTests
 ```
 
 ### View Allure Report
+
 ```bash
-# After running tests, double-click:
+# Option 1: Use the batch file (Windows)
 open-report.bat
 
-# Or run:
+# Option 2: Command line
 allure serve target/allure-results
 ```
 
@@ -322,172 +118,114 @@ allure serve target/allure-results
 ## Configuration
 
 ### application.properties
-```properties
-# Mobile platform (Android or iOS)
-platformName=iOS
 
-# Web browser (chrome, firefox, edge)
+```properties
+# Browser: chrome, firefox, edge
 browser=chrome
 
-# Headless mode (true = no browser window, for CI/CD)
+# Headless mode: true = no browser window
 headless=false
+
+# Mobile platform: Android, iOS
+platformName=iOS
 ```
 
----
+### Command Line Overrides
 
-## CI/CD Pipeline (GitHub Actions)
-
-### What is CI/CD? (Beginner Explanation)
-
-**CI/CD** stands for **Continuous Integration / Continuous Delivery**. In simple terms:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     WITHOUT CI/CD (Manual)                       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   You write code → You manually run tests → You check results   │
-│                                                                  │
-│   Problems:                                                      │
-│   • You might forget to run tests                                │
-│   • Different machines might have different results              │
-│   • Time consuming                                               │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│                      WITH CI/CD (Automatic)                      │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   You push code → Tests run AUTOMATICALLY → Results appear      │
-│                                                                  │
-│   Benefits:                                                      │
-│   • Never forget to test                                         │
-│   • Same environment every time                                  │
-│   • Saves time                                                   │
-│   • Catches bugs before they reach production                    │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### How GitHub Actions Works
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                    GITHUB ACTIONS FLOW                            │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   1. You push code to GitHub                                      │
-│            ↓                                                      │
-│   2. GitHub sees the push and reads .github/workflows/test.yml    │
-│            ↓                                                      │
-│   3. GitHub creates a fresh virtual computer (Ubuntu Linux)       │
-│            ↓                                                      │
-│   4. The computer installs Java, Chrome, downloads your code      │
-│            ↓                                                      │
-│   5. Runs: mvn test -Dheadless=true                               │
-│            ↓                                                      │
-│   6. Generates Allure report                                      │
-│            ↓                                                      │
-│   7. Uploads report as downloadable "artifact"                    │
-│            ↓                                                      │
-│   8. Shows ✅ or ❌ on your GitHub repository                     │
-│                                                                   │
-│   ALL OF THIS HAPPENS AUTOMATICALLY - NO SETUP ON YOUR MACHINE!  │
-│                                                                   │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-### Pipeline File Location
-
-```
-.github/
-└── workflows/
-    └── test.yml    ← This file tells GitHub what to do
-```
-
-### What the Pipeline Does (Step by Step)
-
-| Step | What Happens | Why |
-|------|--------------|-----|
-| 1. Checkout | Downloads your code to the runner | Runner starts empty |
-| 2. Setup Java | Installs Java 17 | Your tests need Java |
-| 3. Setup Chrome | Installs Chrome browser | Selenium needs a browser |
-| 4. Run Tests | `mvn test -Dheadless=true` | Runs tests without display |
-| 5. Generate Report | `mvn allure:report` | Creates HTML report |
-| 6. Upload Artifacts | Saves report files | So you can download them |
-
-### How to See Your Test Results
-
-1. Go to your GitHub repository
-2. Click the **"Actions"** tab at the top
-3. Click on the latest workflow run (shows ✅ or ❌)
-4. Scroll down to **"Artifacts"** section
-5. Download **"allure-report"**
-6. Extract the ZIP file
-7. Open **index.html** in your browser
-
-```
-GitHub Repository
-       │
-       ├── Code tab (your files)
-       ├── Issues tab
-       ├── Pull requests tab
-       └── Actions tab  ← CLICK HERE TO SEE TEST RUNS
-              │
-              └── Click a run → Scroll to Artifacts → Download report
-```
-
-### When Does the Pipeline Run?
-
-| Trigger | When |
-|---------|------|
-| `push` | When you push to main/master branch |
-| `pull_request` | When someone opens a PR to main/master |
-| `workflow_dispatch` | When you manually click "Run workflow" button |
-
-### Headless Mode Explained
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    NORMAL MODE (headless=false)                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   Chrome opens → You can see the browser → Tests run visually   │
-│                                                                  │
-│   Good for: Debugging, watching tests run                        │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│                   HEADLESS MODE (headless=true)                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   Chrome runs invisibly → No window → Tests run in background   │
-│                                                                  │
-│   Good for: CI/CD servers (they don't have monitors!)            │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Running Tests Locally vs CI/CD
+You can override any property from command line:
 
 ```bash
-# LOCAL (your computer) - See browser
-mvn test
-
-# LOCAL (your computer) - Headless mode
-mvn test -Dheadless=true
-
-# CI/CD (GitHub) - Always headless (configured in test.yml)
-# Runs automatically when you push!
+mvn test -Dbrowser=firefox -Dheadless=true
 ```
 
 ---
 
-## Adding New Pages
+## CI/CD Pipeline
 
-### Web Page
+This framework includes a GitHub Actions pipeline that automatically runs tests when you push code.
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│   1. You push code to GitHub                                │
+│                    ↓                                        │
+│   2. GitHub Actions automatically triggers                  │
+│                    ↓                                        │
+│   3. A virtual machine runs your tests                      │
+│                    ↓                                        │
+│   4. Allure report is generated and published               │
+│                    ↓                                        │
+│   5. Report is available at:                                │
+│      https://honda1994.github.io/AutomationFramework/       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Pipeline Triggers
+
+| Trigger | When It Runs |
+|---------|--------------|
+| Push to main/master | Automatically |
+| Pull Request | Automatically |
+| Manual | Click "Run workflow" in Actions tab |
+
+### View Results
+
+1. Go to your repository on GitHub
+2. Click **Actions** tab
+3. Click on the latest workflow run
+4. Download **allure-report** artifact, or
+5. View online at: https://honda1994.github.io/AutomationFramework/
+
+---
+
+## Writing Tests
+
+### Example Test Class
+
+```java
+package Tests.web;
+
+import base.web.BaseTest;
+import io.qameta.allure.*;
+import org.testng.annotations.*;
+import pages.web.GooglePage;
+import utils.*;
+
+@Listeners(TestListener.class)
+@Epic("Web Testing")
+@Feature("Google Search")
+public class GoogleTests extends BaseTest {
+
+    GooglePage googlePage;
+
+    @BeforeMethod
+    public void initPage() {
+        googlePage = new GooglePage();
+    }
+
+    @Test
+    @Story("Search Functionality")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Verify search returns results")
+    public void verifyGoogleSearch() {
+        ReportUtils.step("Open Google", () -> {
+            googlePage.openGoogle();
+        });
+        
+        ReportUtils.step("Search for term", () -> {
+            googlePage.searchFor("Selenium");
+        });
+        
+        ReportUtils.step("Verify results", () -> {
+            Validations.validatePageTitleContains("Selenium");
+        });
+    }
+}
+```
+
+### Example Page Object
+
 ```java
 package pages.web;
 
@@ -497,99 +235,42 @@ import org.openqa.selenium.support.PageFactory;
 import utils.Actions;
 import utils.DriverManager;
 
-public class NewPage {
+public class GooglePage {
     
-    @FindBy(id = "myElement")
-    private WebElement myElement;
+    @FindBy(name = "q")
+    private WebElement searchBox;
     
-    public NewPage() {
+    public GooglePage() {
         PageFactory.initElements(DriverManager.getDriver(), this);
     }
     
-    public void doSomething() {
-        Actions.click(myElement);
-    }
-}
-```
-
-### Mobile Page
-```java
-package pages.mobile;
-
-import io.appium.java_client.pagefactory.AndroidFindBy;
-import io.appium.java_client.pagefactory.AppiumFieldDecorator;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.PageFactory;
-import utils.Actions;
-import utils.DriverManager;
-import java.time.Duration;
-
-public class NewPage {
-    
-    @AndroidFindBy(accessibility = "my element")
-    private WebElement myElement;
-    
-    public NewPage() {
-        PageFactory.initElements(
-            new AppiumFieldDecorator(DriverManager.getDriver(), Duration.ofSeconds(10)), 
-            this
-        );
+    public void openGoogle() {
+        Actions.navigateTo("https://www.google.com");
     }
     
-    public void doSomething() {
-        Actions.click(myElement);
+    public void searchFor(String text) {
+        Actions.type(searchBox, text);
+        Actions.pressEnter(searchBox);
+    }
+    
+    public boolean isSearchBoxDisplayed() {
+        return searchBox.isDisplayed();
     }
 }
 ```
 
 ---
 
-## Adding New Tests
+## Utility Classes
+
+### Actions (UI Interactions)
 
 ```java
-package Tests.web;
+// Navigation
+Actions.navigateTo("https://example.com");
+Actions.refreshPage();
+Actions.goBack();
 
-import base.web.BaseTest;
-import io.qameta.allure.*;
-import org.testng.annotations.*;
-import pages.web.NewPage;
-import utils.ReportUtils;
-import utils.TestListener;
-import utils.Validations;
-
-@Listeners(TestListener.class)
-@Epic("Web Testing")
-@Feature("New Feature")
-public class NewTests extends BaseTest {
-    
-    NewPage newPage;
-    
-    @BeforeMethod
-    public void initPage() {
-        newPage = new NewPage();
-    }
-    
-    @Test
-    @Story("New Story")
-    @Description("Test description")
-    public void testSomething() {
-        ReportUtils.step("Do something", () -> {
-            newPage.doSomething();
-        });
-        
-        ReportUtils.step("Verify result", () -> {
-            Validations.validateTrue(true, "Should pass");
-        });
-    }
-}
-```
-
----
-
-## Wrapper Classes Reference
-
-### Actions.java
-```java
 // Clicks
 Actions.click(element);
 Actions.doubleClick(element);
@@ -597,84 +278,101 @@ Actions.rightClick(element);
 
 // Typing
 Actions.type(element, "text");
-Actions.appendText(element, "text");
-Actions.pressEnter(element);
 Actions.clearText(element);
-
-// Navigation
-Actions.navigateTo("url");
-Actions.refreshPage();
-Actions.goBack();
-Actions.goForward();
-
-// Getters
-Actions.getPageTitle();
-Actions.getCurrentUrl();
-Actions.getText(element);
-Actions.getAttribute(element, "attr");
+Actions.pressEnter(element);
 
 // Dropdowns
 Actions.selectByText(dropdown, "Option");
 Actions.selectByValue(dropdown, "value");
 Actions.selectByIndex(dropdown, 0);
 
-// Other
-Actions.hover(element);
-Actions.scrollToElement(element);
+// Waits
 Actions.waitForVisible(element, 10);
 Actions.waitForClickable(element, 10);
+
+// Getters
+String title = Actions.getPageTitle();
+String url = Actions.getCurrentUrl();
+String text = Actions.getText(element);
 ```
 
-### Validations.java
+### Validations (Assertions)
+
 ```java
 // Element validations
-Validations.validateElementIsDisplayed(element, "name");
-Validations.validateElementIsEnabled(element, "name");
-Validations.validateElementIsSelected(element, "name");
-
-// Text validations
-Validations.validateTextEquals(element, "expected", "name");
-Validations.validateTextContains(element, "expected", "name");
+Validations.validateElementIsDisplayed(element, "Login button");
+Validations.validateElementIsEnabled(element, "Submit button");
+Validations.validateTextEquals(element, "Welcome", "Header");
+Validations.validateTextContains(element, "Hello", "Greeting");
 
 // Page validations
-Validations.validatePageTitle("title");
-Validations.validatePageTitleContains("text");
-Validations.validateUrl("url");
-Validations.validateUrlContains("text");
+Validations.validatePageTitle("Google");
+Validations.validatePageTitleContains("Search");
+Validations.validateUrl("https://example.com");
+Validations.validateUrlContains("/dashboard");
 
 // Boolean validations
-Validations.validateTrue(condition, "message");
-Validations.validateFalse(condition, "message");
-Validations.validateEquals(actual, expected, "message");
+Validations.validateTrue(condition, "Should be true");
+Validations.validateFalse(condition, "Should be false");
+Validations.validateEquals(actual, expected, "Values should match");
 
 // Non-asserting checks (return boolean)
-Validations.isDisplayed(element);
-Validations.isEnabled(element);
-Validations.isDisplayedWithWait(element, 10);
+boolean visible = Validations.isDisplayed(element);
+boolean enabled = Validations.isEnabled(element);
+```
+
+### ReportUtils (Allure Reporting)
+
+```java
+// Add steps to report
+ReportUtils.step("Click login button", () -> {
+    loginPage.clickLogin();
+});
+
+// Attach data to report
+ReportUtils.attachText("Response", jsonResponse);
+ReportUtils.captureScreenshot(driver, "Current State");
 ```
 
 ---
 
-## Technologies Used
+## Technologies
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Java | 17 | Programming language |
-| Appium | 8.5.1 | Mobile automation |
 | Selenium | 4.8.3 | Web automation |
+| Appium | 8.5.1 | Mobile automation |
 | TestNG | 7.7.0 | Test framework |
 | Allure | 2.24.0 | Test reporting |
-| SLF4J + Logback | 2.0.9 | Logging |
-| WebDriverManager | 5.6.2 | Auto browser driver management |
+| WebDriverManager | 5.6.2 | Auto driver management |
+| Maven | 3.6+ | Build tool |
+| GitHub Actions | - | CI/CD pipeline |
 
 ---
 
-## Naming Conventions
+## Email Notifications
 
-| Category | Convention | Example |
-|----------|------------|---------|
-| Classes | PascalCase | `LoginPage`, `GoogleTests` |
-| Methods | camelCase | `typeUserName()`, `clickLogin()` |
-| Variables | camelCase | `searchBox`, `loginButton` |
-| Packages | lowercase | `pages.mobile`, `tests.web` |
-| Constants | SCREAMING_SNAKE | `GOOGLE_URL`, `DEFAULT_TIMEOUT` |
+To receive email notifications when tests fail:
+
+1. Go to: https://github.com/settings/notifications
+2. Under **"Actions"**, select your notification preference:
+   - **Failed workflows only** (recommended)
+   - **All workflows**
+3. Save changes
+
+You'll now receive emails whenever your pipeline fails!
+
+---
+
+## Live Report
+
+View your latest test report online:
+
+**https://honda1994.github.io/AutomationFramework/**
+
+---
+
+## License
+
+This project is for learning and demonstration purposes.
