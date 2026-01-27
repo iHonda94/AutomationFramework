@@ -74,8 +74,7 @@ public final class Constants {
     public static final String API_BASE_URL = "https://api.nprd.ccbcc.com/ccponboarding-qa";
     public static final String API_SUBSCRIPTION_KEY = "your-subscription-key";
     
-    // Note: Token expires frequently - update before running tests
-    // Get token from your authentication provider and paste here
+    // Note: Token expires frequently - update before running API tests locally
     public static final String API_BEARER_TOKEN = "your-bearer-token";
 
     // ==================== API TEST DATA ====================
