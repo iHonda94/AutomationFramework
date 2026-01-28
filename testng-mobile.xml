@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!-- This TestNG suite runs ONLY mobile tests -->
+<suite name="Mobile Tests Suite">
+    
+    <test name="Mobile Tests">
+        <classes>
+            <class name="Tests.mobile.LoginPageTests"/>
+        </classes>
+    </test>
+    
+</suite>

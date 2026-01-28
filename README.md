@@ -32,6 +32,8 @@ AutomationFramework/
 │   │
 │   ├── pages/                    # Page Objects
 │   │   ├── mobile/
+│   │   │   ├── HomePage.java
+│   │   │   └── LoginPage.java
 │   │   └── web/GooglePage.java
 │   │
 │   └── utils/                    # Utilities
@@ -52,11 +54,12 @@ AutomationFramework/
 ├── src/test/java/Tests/
 │   ├── api/ApiTests.java         # API tests
 │   ├── db/DatabaseTests.java     # Database tests
-│   ├── mobile/LoginPageTests.java
+│   ├── mobile/LoginPageTests.java # Mobile tests
 │   └── web/GoogleTests.java      # Web tests
 │
 ├── testng.xml                    # All tests
 ├── testng-web.xml                # Web tests only
+├── testng-mobile.xml             # Mobile tests only
 ├── testng-api.xml                # API tests only
 ├── testng-db.xml                 # Database tests only
 └── pom.xml                       # Maven dependencies
@@ -72,6 +75,15 @@ mvn test -Dtest=GoogleTests
 
 # Headless mode
 mvn test -Dtest=GoogleTests -Dheadless=true
+```
+
+### Run Mobile Tests
+```bash
+# Start Appium server first
+appium
+
+# Run mobile tests (requires emulator/device)
+mvn test -Dtest=LoginPageTests
 ```
 
 ### Run API Tests
@@ -95,6 +107,9 @@ allure serve target/allure-results
 
 ### application.properties
 ```properties
+# Mobile
+platformName=iOS
+
 # Web
 browser=chrome
 headless=false
@@ -109,6 +124,21 @@ db.port=1433
 db.name=your-database
 db.username=your-user
 db.password=your-password
+```
+
+### Mobile Configuration (in Constants.java)
+```java
+// Device names
+ANDROID_DEVICE_NAME = "emulator-5544"
+IOS_DEVICE_NAME = "iPhone 16 Pro"
+IOS_PLATFORM_VERSION = "18.2"
+
+// App paths
+ANDROID_APP_PATH = "/src/main/resources/AndroidDemo.apk"
+IOS_APP_PATH = "/src/main/resources/iOSDemo.app"
+
+// Appium server
+APPIUM_SERVER_URL = "http://127.0.0.1:4723/"
 ```
 
 ### Constants.java
@@ -128,6 +158,17 @@ public void verifyGoogleSearch() {
     googlePage.openGoogle();
     googlePage.searchFor("Selenium");
     Validations.validatePageTitleContains("Selenium");
+}
+```
+
+### Mobile Test
+```java
+@Test
+public void verifyLogin() {
+    loginPage.enterUsername("standard_user");
+    loginPage.enterPassword("secret_sauce");
+    loginPage.clickLogin();
+    Validations.validateTrue(homePage.isDisplayed(), "Home page should be visible");
 }
 ```
 
