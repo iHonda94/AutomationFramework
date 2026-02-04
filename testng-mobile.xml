@@ -3,9 +3,21 @@
 <!-- This TestNG suite runs ONLY mobile tests -->
 <suite name="Mobile Tests Suite">
     
-    <test name="Mobile Tests">
+    <test name="Login Tests">
         <classes>
             <class name="Tests.mobile.LoginPageTests"/>
+        </classes>
+    </test>
+    
+    <test name="Products Tests">
+        <classes>
+            <class name="Tests.mobile.ProductsTests"/>
+        </classes>
+    </test>
+    
+    <test name="Cart Tests">
+        <classes>
+            <class name="Tests.mobile.CartTests"/>
         </classes>
     </test>
     

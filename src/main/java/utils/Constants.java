@@ -49,7 +49,7 @@ public final class Constants {
 
     // ==================== MOBILE - DEVICE NAMES ====================
     
-    public static final String ANDROID_DEVICE_NAME = "emulator-5544";
+    public static final String ANDROID_DEVICE_NAME = "emulator-5554";
     public static final String IOS_DEVICE_NAME = "iPhone 16 Pro";
     public static final String IOS_PLATFORM_VERSION = "18.2";
 

@@ -296,16 +296,17 @@ public class Actions {
     }
 
     /**
-     * Waits for specified seconds (use sparingly).
+     * Waits for element to be visible with default timeout.
      */
-    public static void wait(int seconds) {
-        logger.warn("Using static wait for {} seconds (not recommended)", seconds);
-        try {
-            Thread.sleep(seconds * 1000L);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logger.error("Wait interrupted", e);
-        }
+    public static void waitForVisible(WebElement element) {
+        waitForVisible(element, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Waits for element to be clickable with default timeout.
+     */
+    public static void waitForClickable(WebElement element) {
+        waitForClickable(element, DEFAULT_TIMEOUT);
     }
 
     // ==================== HELPER METHODS ====================
